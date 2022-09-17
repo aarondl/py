@@ -28,29 +28,28 @@ fn venv_exists<P: AsRef<Path>, D: AsRef<Path>>(root: P, venv_dir: D) -> Option<P
 }
 
 pub fn run_command_with_args<P: AsRef<Path>>(cmd: P, args: Vec<String>) {
-    // If there's no Python mod dir, just run Python as normal
-    let (python_mod_dir, venv_dir) =
-        match find_python_mod_dir().expect("should be able to check for mod dir") {
-            Some((path, bytes)) => {
-                if bytes.is_empty() {
-                    (path, "env".to_owned())
-                } else {
-                    let venv_dir =
-                        String::from_utf8(bytes).expect("the contents of py.mod to be valid utf8");
-                    (path, venv_dir)
-                }
+    // If we don't have a py.mod then just run the command as normal
+    let (python_mod_dir, venv_dir) = match find_python_mod_dir().expect("should be able to check for mod dir") {
+        Some((path, bytes)) => {
+            let venv_dir = String::from_utf8(bytes).expect("the contents of py.mod to be valid utf8");
+            let venv_dir = venv_dir.trim().to_owned();
+            if venv_dir.is_empty() {
+                (path, "env".to_owned())
+            } else {
+                (path, venv_dir)
             }
-            None => {
-                eprintln!("mod: none");
-                let mut cmd = std::process::Command::new(cmd.as_ref());
-                cmd.args(args);
-                let mut handle = cmd.spawn().expect("can run the command specified");
-                handle.wait().expect("can wait on the command");
-                return;
-            }
-        };
+        }
+        None => {
+            eprintln!("mod: none");
+            let mut cmd = std::process::Command::new(cmd.as_ref());
+            cmd.args(args);
+            let mut handle = cmd.spawn().expect("can run the command specified");
+            handle.wait().expect("can wait on the command");
+            return;
+        }
+    };
 
-    eprintln!("mod: {:?}", python_mod_dir);
+    eprintln!("mod: {}", python_mod_dir.to_str().expect("to be able to show mod path as utf8"));
     let venv_dir = venv_exists(&python_mod_dir, &venv_dir);
 
     let command_path = match venv_dir {
@@ -83,10 +82,8 @@ pub fn run_command_with_args<P: AsRef<Path>>(cmd: P, args: Vec<String>) {
     }
 
     cmd.args(args);
-    let mut handle = cmd.spawn().expect(&format!(
-        "should be able to spawn command: {}",
-        command_path.to_str().unwrap(),
-    ));
+    let mut handle =
+        cmd.spawn().expect(&format!("should be able to spawn command: {}", command_path.to_str().unwrap(),));
     handle.wait().expect("should be able to wait on command");
 }
 
@@ -96,6 +93,6 @@ fn append_venv_bin_path(p: &mut PathBuf) {
 }
 
 #[cfg(not(target_os = "windows"))]
-fn append_venv_bin_path() {
+fn append_venv_bin_path(p: &mut PathBuf) {
     p.push("bin");
 }
