@@ -4,3 +4,11 @@ name = "py"
 version = "0.1.0"
 
 [dependencies]
+
+
+[[bin]]
+name = "py"
+[[bin]]
+name = "pipy"
+[lib]
+name = "pylib"
