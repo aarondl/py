@@ -2,7 +2,21 @@ fn main() {
     let mut args = std::env::args();
     args.next();
 
-    run(args.collect());
+    let args = args.collect::<Vec<String>>();
+
+    // Check to see if we're creating a virtualenv
+    let match_args = args.iter().map(String::as_str).collect::<Vec<&str>>();
+    match match_args.as_slice() {
+        &["-m", "venv", ..] => {
+            let path = match_args.into_iter().skip(2).collect::<Vec<&str>>().join(" ");
+            if path != "env" {
+                pylib::create_py_venv(&path);
+            }
+        }
+        _ => (),
+    }
+
+    run(args);
 }
 
 #[cfg(target_os = "windows")]
