@@ -3,15 +3,15 @@
 Proper module management for Python!
 
 Most modern languages have something in the root of a project to define a
-project and build commands run use that context so that if you run `cargo test`
-as an example it knows what you mean and each subdirectory when trying to import
-between the subdirectories.
+project and when run build commands use that context. As an example `cargo test`
+knows what you mean even if you're several subdirectories deep and it's easy
+to import subdirectories.
 
-Python on the other hand is just a directory full of scripts and it doesn't
+Python on the other hand is just a directory tree full of scripts and it doesn't
 understand having a project directory root where you likely want to share
-imports from that root as well as a virtualenv for all scripts in that folder.
-Coming from more modern tooling this seems downright unpleasant compared to
-great build systems in languages like Go, Rust, Node, Haskell, and Java.
+imports from that root as well as a virtualenv for all scripts in that directory
+tree. This seems downright unpleasant compared to modern tooling in languages
+like Go, Rust, Node, Haskell, and Java.
 
 `py` and `pypi` fix this by recursing up the directory tree to find a `py.mod`
 and optionally a `py.venv` file and setting your environment for the duration
@@ -26,6 +26,7 @@ When you want to run `pip(3)` use `pipy` instead!
 
 For the following examples we're assuming this folder structure:
 ```bash
+# project root lives beside the py.mod
 /code/project/py.mod
 # virtual env lives here
 /code/project/env/pyvenv.cfg
@@ -35,7 +36,7 @@ In order to use `py.mod` you just need to create an empty `py.mod` file in the
 root of your python project.
 
 When you run `py` or `pipy` while you have a `py.mod` file the following effects
-occur (no venv) to fix importing:
+occur to fix importing:
 
 ```bash
 * PYTHONPATH=/code/project
